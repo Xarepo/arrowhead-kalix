@@ -11,6 +11,7 @@ import se.arkalix.security.identity._internal.X509Keys;
 
 import java.net.InetSocketAddress;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Optional;
 
 import static se.arkalix.dto.DtoCodec.JSON;
@@ -48,6 +49,11 @@ public interface SystemDetails {
     int port();
 
     /**
+     * System metadata.
+     */
+    Map<String, String> metadata();
+
+    /**
      * Public key of system, if running in secure mode.
      * <p>
      * Must be the Base64 encoded variant of a DER-encoded PKCS#8 private key.
@@ -68,7 +74,7 @@ public interface SystemDetails {
     default SystemRecord toSystemDescription() {
         return SystemRecord.from(name(), publicKeyBase64()
             .map(X509Keys::parsePublicKey)
-            .orElse(null), new InetSocketAddress(hostname(), port()));
+            .orElse(null), new InetSocketAddress(hostname(), port()), metadata());
     }
 
     /**
@@ -100,6 +106,7 @@ public interface SystemDetails {
             .name(provider.name())
             .hostname(socketAddress.getHostString())
             .port(socketAddress.getPort())
+            .metadata(provider.metadata())
             .publicKeyBase64(provider.isSecure()
                 ? Base64.getEncoder().encodeToString(provider.publicKey().getEncoded())
                 : null)
